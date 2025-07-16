@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
   Navbar,
   NavBody,
-  NavItems,
   MobileNav,
   MobileNavHeader,
   MobileNavMenu,

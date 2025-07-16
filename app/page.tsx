@@ -1,11 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import {  useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from './components/Header';
 import { AnimatedTestimonials } from './components/ui/animated-testimonials';
-import { LoopOnce } from 'three/src/constants.js';
 
 export default function Home() {
   const router = useRouter();
