@@ -121,7 +121,21 @@ export default function DashboardPage() {
     </div>
   );
 
-  const AppointmentCard = ({ appointment }) => (
+  type AppointmentStatus = 'confirmed' | 'pending' | 'done';
+
+  interface Appointment {
+    service: string;
+    doctor: string;
+    status: AppointmentStatus;
+    date: string;
+    time: string;
+  }
+
+  interface AppointmentCardProps {
+    appointment: Appointment;
+  }
+
+  const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment }) => (
     <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20 hover:border-white/30 transition-all duration-300">
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -168,7 +182,7 @@ export default function DashboardPage() {
     </div>
   );
 
-  const FavoriteCard = ({ favorite }) => (
+  const FavoriteCard = ({ favorite }: { favorite: { service: string; category: string } }) => (
     <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20 hover:border-white/30 transition-all duration-300">
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -351,7 +365,9 @@ export default function DashboardPage() {
                   {TIMES.map((slot) => (
                     <button
                       key={slot.time}
-                      onClick={() => slot.available && setSelectedTime(slot.time)}
+                      onClick={() => {
+                        if (slot.available) setSelectedTime(slot.time as any);
+                      }}
                       disabled={!slot.available}
                       className={`group relative p-4 rounded-xl border transition-all duration-300 ${
                         slot.available
@@ -400,7 +416,13 @@ export default function DashboardPage() {
               
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {appointments.map((appointment) => (
-                  <AppointmentCard key={appointment.id} appointment={appointment} />
+                  <AppointmentCard
+                    key={appointment.id}
+                    appointment={{
+                      ...appointment,
+                      status: appointment.status as AppointmentStatus,
+                    }}
+                  />
                 ))}
               </div>
             </div>
