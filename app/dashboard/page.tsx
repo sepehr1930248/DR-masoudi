@@ -20,6 +20,9 @@ import {
   Zap
 } from 'lucide-react';
 import Header from '../components/Header';
+import OverviewTab from './components/OverviewTab';
+import BookingTab from './components/BookingTab';
+import AppointmentsTab from './components/AppointmentsTab';
 
 const SERVICES = [
   { key: 'consult', label: 'مشاوره', icon: User, color: 'from-blue-500 to-cyan-500' },
@@ -246,12 +249,11 @@ export default function DashboardPage() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex  gap-2 mb-8 bg-white/10 backdrop-blur-xl rounded-xl p-1 border border-white/10 w-fit">
+          <div className="flex gap-4 mb-8 bg-white/10 backdrop-blur-xl rounded-xl p-1 border border-white/10 w-fit">
             {[
               { id: 'overview', label: 'نمای کلی', icon: BarChart3 },
               { id: 'booking', label: 'رزرو نوبت', icon: Calendar },
               { id: 'appointments', label: 'نوبت‌ها', icon: Clock },
-              { id: 'favorites', label: 'علاقه‌مندی‌ها', icon: Heart }
             ].map(tab => {
               const Icon = tab.icon;
               return (
@@ -272,163 +274,9 @@ export default function DashboardPage() {
           </div>
 
           {/* Tab Content */}
-          {activeTab === 'overview' && (
-            <div className="space-y-8">
-              <DashboardStats />
-              <QuickActions />
-              
-              <div className="grid lg:grid-cols-2 gap-8">
-                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                  <h2 className="text-2xl font-bold text-white mb-6">آخرین نوبت‌ها</h2>
-                  <div className="space-y-4">
-                    {appointments.slice(0, 3).map(appointment => (
-                      <div key={appointment.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
-                        <div>
-                          <p className="text-white font-medium">{appointment.service}</p>
-                          <p className="text-slate-300 text-sm">{appointment.date}</p>
-                        </div>
-                        <div className={`px-3 py-1 rounded-full text-xs ${
-                          appointment.status === 'confirmed' ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'
-                        }`}>
-                          {appointment.status === 'confirmed' ? 'تأیید شده' : 'در انتظار'}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-                  <h2 className="text-2xl font-bold text-white mb-6">سرویس‌های محبوب</h2>
-                  <div className="space-y-4">
-                    {favorites.slice(0, 3).map(favorite => (
-                      <div key={favorite.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
-                        <div>
-                          <p className="text-white font-medium">{favorite.service}</p>
-                        </div>
-                        <button className="px-3 py-1 bg-pink-500/20 text-pink-300 rounded-lg text-sm hover:bg-pink-500/30 transition-colors">
-                          رزرو
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'booking' && (
-            <div className="space-y-8">
-              <div className="text-center">
-                <h2 className="text-3xl font-bold text-white mb-4">رزرو نوبت</h2>
-                <p className="text-slate-300 text-lg">یک سرویس را انتخاب کنید و زمان‌های موجود را مشاهده کنید</p>
-              </div>
-
-              {/* Service Selection */}
-              <div>
-                <h3 className="text-xl font-semibold text-white mb-6 text-center">انتخاب سرویس</h3>
-                <div className="grid grid-cols-4 md:grid-cols-4 gap-4">
-                  {SERVICES.map((service) => {
-                    const isSelected = selectedService === service.key;
-                    return (
-                      <button
-                        key={service.key}
-                        onClick={() => setSelectedService(service.key)}
-                        className={`group relative p-2 rounded-2xl border transition-all duration-300 hover:scale-105 ${
-                          isSelected
-                            ? 'bg-gradient-to-r from-pink-500/20 to-purple-600/20 border-pink-500/50 shadow-lg shadow-pink-500/15'
-                            : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
-                        }`}
-                      >
-                        <div className="flex flex-col items-center space-y-3">
-                          
-                          <span className={`font-medium transition-colors duration-300 ${
-                            isSelected ? 'text-pink-300' : 'text-slate-300 group-hover:text-white'
-                          }`}>
-                            {service.label}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Time Selection */}
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20">
-                <div className="flex items-center justify-center mb-8">
-                  <Clock className="w-6 h-6 text-purple-400 mr-3" />
-                  <h3 className="text-2xl font-semibold text-white">
-                    زمان‌های موجود برای {selectedServiceData?.label}
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {TIMES.map((slot) => (
-                    <button
-                      key={slot.time}
-                      onClick={() => {
-                        if (slot.available) setSelectedTime(slot.time as any);
-                      }}
-                      disabled={!slot.available}
-                      className={`group relative p-4 rounded-xl border transition-all duration-300 ${
-                        slot.available
-                          ? selectedTime === slot.time
-                            ? 'backdrop-blur-2xl border-pink-500 text-white shadow-lg shadow-pink-500/25'
-                            : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:border-white/20 hover:text-white hover:scale-105'
-                          : 'bg-white/5 border-white/10 text-slate-500 cursor-not-allowed opacity-50'
-                      }`}
-                    >
-                      <div className="text-center">
-                        <div className="text-lg font-semibold">{slot.time}</div>
-                        <div className="text-sm opacity-75 mt-1">
-                          {slot.available ? '' : 'رزرو شده'}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {selectedTime && (
-                  <div className="mt-8 text-center">
-                    <button className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-3 rounded-full font-semibold hover:shadow-lg hover:shadow-pink-500/25 transition-all duration-300 hover:scale-105">
-                      تأیید رزرو برای ساعت {selectedTime}
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'appointments' && (
-            <div className="space-y-8">
-              <div className="flex justify-between items-center">
-                <h2 className="text-3xl font-bold text-white">نوبت‌های من</h2>
-                <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors">
-                    <Filter className="w-4 h-4 inline mr-2" />
-                    فیلتر
-                  </button>
-                  <button className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors">
-                    <Download className="w-4 h-4 inline mr-2" />
-                    خروجی
-                  </button>
-                </div>
-              </div>
-              
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {appointments.map((appointment) => (
-                  <AppointmentCard
-                    key={appointment.id}
-                    appointment={{
-                      ...appointment,
-                      status: appointment.status as AppointmentStatus,
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
+          {activeTab === 'overview' && <OverviewTab />}
+          {activeTab === 'booking' && <BookingTab />}
+          {activeTab === 'appointments' && <AppointmentsTab />}
           {activeTab === 'favorites' && (
             <div className="space-y-8">
               <div className="flex justify-between items-center">

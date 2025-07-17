@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Navbar,
@@ -10,6 +10,7 @@ import {
   MobileNavMenu,
   MobileNavToggle,
 } from './ui/resizable-navbar';
+import AuthModal from './AuthModal';
 
 interface HeaderProps {
   scrollToSection: (sectionId: string) => void;
@@ -17,7 +18,22 @@ interface HeaderProps {
 
 export default function Header({ scrollToSection }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
+
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('authToken');
+      setIsAuthenticated(!!token);
+    };
+
+    checkAuth();
+    // Listen for storage changes (in case user logs out in another tab)
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
 
   const handleScrollToSection = (sectionId: string) => {
     scrollToSection(sectionId);
@@ -32,6 +48,16 @@ export default function Header({ scrollToSection }: HeaderProps) {
       router.push(link);
     }
     setIsMenuOpen(false);
+  };
+
+  const handleBookAppointment = () => {
+    if (isAuthenticated) {
+      // User is authenticated, redirect to dashboard
+      router.push('/dashboard');
+    } else {
+      // User is not authenticated, show auth modal
+      setIsAuthModalOpen(true);
+    }
   };
 
   const navItems = [
@@ -72,61 +98,71 @@ export default function Header({ scrollToSection }: HeaderProps) {
     </div>
   );
 
-  return (
-    <div className="fixed top-0 left-0 right-0 z-50">
-      <Navbar className="relative">
-        {/* Desktop Navigation */}
-        <NavBody className="backdrop-blur-2xl bg-black/20 border border-white/10 shadow-2xl">
-          <Logo />
-          <div className="hidden lg:flex items-center space-x-4 rtl:space-x-reverse">
-            {navItems.map((item, idx) => (
-              <button
-                key={`nav-${idx}`}
-                onClick={() => handleNavigation(item.link)}
-                className="relative px-4 py-2 text-sm font-medium text-gray-300 hover:text-pink-400 transition-colors duration-300 rounded-xl"
-              >
-                {item.name}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handleScrollToSection('contact')}
-              className="px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full font-medium hover:from-pink-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg"
-            >
-              رزرو نوبت
-            </button>
-          </div>
-        </NavBody>
-
-        {/* Mobile Navigation */}
-        <MobileNav className="backdrop-blur-2xl bg-black/20 border border-white/10 shadow-2xl">
-          <MobileNavHeader>
-            <Logo />
-            <MobileNavToggle
-              isOpen={isMenuOpen}
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            />
-          </MobileNavHeader>
-          
-          <MobileNavMenu
-            isOpen={isMenuOpen}
-            onClose={() => setIsMenuOpen(false)}
-            className="bg-black/80 backdrop-blur-xl border border-white/10"
-          >
-            <MobileNavItems />
-            <button
-              onClick={() => {
-                handleScrollToSection('contact');
-                setIsMenuOpen(false);
-              }}
-              className="w-full px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full font-medium hover:from-pink-600 hover:to-purple-700 transition-all duration-300 shadow-lg mt-4"
-            >
-              رزرو نوبت
-            </button>
-          </MobileNavMenu>
-        </MobileNav>
-      </Navbar>
-    </div>
+  const BookAppointmentButton = ({ className = "", onClick }: { className?: string; onClick?: () => void }) => (
+    <button
+      onClick={onClick || handleBookAppointment}
+      className={`px-6 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full font-medium hover:from-pink-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg ${className}`}
+    >
+      {isAuthenticated ? 'داشبورد' : 'رزرو نوبت'}
+    </button>
   );
-} 
+
+  return (
+    <>
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <Navbar className="relative">
+          {/* Desktop Navigation */}
+          <NavBody className="backdrop-blur-2xl bg-black/20 border border-white/10 shadow-2xl">
+            <Logo />
+            <div className="hidden lg:flex items-center space-x-4 rtl:space-x-reverse">
+              {navItems.map((item, idx) => (
+                <button
+                  key={`nav-${idx}`}
+                  onClick={() => handleNavigation(item.link)}
+                  className="relative px-4 py-2 text-sm font-medium text-gray-300 hover:text-pink-400 transition-colors duration-300 rounded-xl"
+                >
+                  {item.name}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center space-x-2">
+              <BookAppointmentButton />
+            </div>
+          </NavBody>
+
+          {/* Mobile Navigation */}
+          <MobileNav className="backdrop-blur-2xl bg-black/20 border border-white/10 shadow-2xl">
+            <MobileNavHeader>
+              <Logo />
+              <MobileNavToggle
+                isOpen={isMenuOpen}
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              />
+            </MobileNavHeader>
+            
+            <MobileNavMenu
+              isOpen={isMenuOpen}
+              onClose={() => setIsMenuOpen(false)}
+              className="bg-black/80 backdrop-blur-xl border border-white/10"
+            >
+              <MobileNavItems />
+              <BookAppointmentButton
+                className="w-full mt-4"
+                onClick={() => {
+                  handleBookAppointment();
+                  setIsMenuOpen(false);
+                }}
+              />
+            </MobileNavMenu>
+          </MobileNav>
+        </Navbar>
+      </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+    </>
+  );
+}

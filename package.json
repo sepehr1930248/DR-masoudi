@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@tabler/icons-react": "^3.34.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "autoprefixer": "^10.4.21",
     "clsx": "^2.1.1",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.525.0",
     "motion": "^12.23.5",
     "next": "15.3.5",
